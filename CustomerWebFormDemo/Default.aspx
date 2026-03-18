@@ -46,6 +46,8 @@
                     <asp:ListItem Text="C#" Value="C#"></asp:ListItem>
                     <asp:ListItem Text="Java" Value="Java"></asp:ListItem>
                     <asp:ListItem Text="Python" Value="Python"></asp:ListItem>
+                    <asp:ListItem Text="JavaScript" Value="JavaScript"></asp:ListItem>  
+                    <asp:ListItem Text="Sql" Value="sql"></asp:ListItem>
                 </asp:DropDownList><br /><br />
 
                 <asp:Button ID="Button1" runat="server"
