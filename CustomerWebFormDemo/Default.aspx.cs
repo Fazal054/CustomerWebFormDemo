@@ -1,13 +1,59 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Web.Services;
 using System.Web.UI.WebControls;
 
 namespace CustomerWebFormDemo
 {
     public partial class _Default : System.Web.UI.Page
     {
+
+        [WebMethod]
+        public static string GetBotResponse(string userMessage)
+        {
+            return CallOpenAI(userMessage);
+        }
+
+        public void StartRabbitMqListener()
+        {
+            var factory = new ConnectionFactory()
+            {
+                HostName = "localhost"
+            };
+
+            var connection = factory.CreateConnection();
+            var channel = connection.CreateModel();
+
+            channel.QueueDeclare(
+                queue: "demo-queue-response",
+                durable: false,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+            var consumer = new EventingBasicConsumer(channel);
+
+            consumer.Received += (model, ea) =>
+            {
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+
+                NotificationStore.LastNotification = message;
+            };
+            channel.BasicConsume(
+                queue: "demo-queue-response",
+                autoAck: true,
+                consumer: consumer);
+        }
+
         private List<string> Customers
         {
             get
@@ -27,6 +73,11 @@ namespace CustomerWebFormDemo
             if (!IsPostBack)
             {
                 LoadStudents();
+                BindCourses();
+            }
+            if (!string.IsNullOrEmpty(NotificationStore.LastNotification))
+            {
+                lblNotification.Text = NotificationStore.LastNotification;
             }
         }
                 
@@ -69,6 +120,18 @@ namespace CustomerWebFormDemo
             LoadStudents();
         }
 
+        protected void GridView1_RowEditing(object sender, GridViewEditEventArgs e)
+        {
+            GridView1.EditIndex = e.NewEditIndex;
+            LoadStudents();
+        }
+
+        protected void GridView1_RowCancelingEdit(object sender, GridViewCancelEditEventArgs e)
+        {
+            GridView1.EditIndex = -1;
+            LoadStudents();
+        }
+
         public void LoadStudents()
         {
             string connStr = @"Server=.;DataBase=StudentDB;Trusted_Connection=True;";
@@ -85,5 +148,85 @@ namespace CustomerWebFormDemo
                 GridView1.DataBind(); 
             }
         }
+
+        public static string CallOpenAI(string message)
+        {
+            string apiKey = "YOUR_API_KEY"; // 🔴 replace this
+
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", apiKey);
+
+                var requestBody = new
+                {
+                    model = "gpt-4o-mini",
+                    messages = new[]
+                    {
+                new { role = "system", content = "You are a helpful assistant for a University Student Management System. Guide users on how to use the system." },
+                new { role = "user", content = message }
+            }
+                };
+
+                var content = new StringContent(
+                    JsonConvert.SerializeObject(requestBody),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+                var response = client.PostAsync(
+                    "https://api.openai.com/v1/chat/completions",
+                    content).Result;
+
+                var result = response.Content.ReadAsStringAsync().Result;
+
+                dynamic json = JsonConvert.DeserializeObject(result);
+
+                return json.choices[0].message.content.ToString();
+            }
+        }
+
+        private void BindCourses()
+        {
+            ddlCourse.DataSource = CourseRepository.GetCourses();
+            ddlCourse.DataTextField = "Name";
+            ddlCourse.DataValueField = "Id";
+            ddlCourse.DataBind();
+        }
+
+        protected void btnSend_Click(object sender, EventArgs e)
+        {
+        var factory = new ConnectionFactory()
+        {
+            HostName = "localhost"
+        };
+
+        using (var connection = factory.CreateConnection())
+        using (var channel = connection.CreateModel())
+        {
+            // Create queue if not exists
+            channel.QueueDeclare(
+                queue: "demo-queue",
+                durable: false,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+            string message = "Hello from WebForms!";
+            var body = Encoding.UTF8.GetBytes(message);
+
+            channel.BasicPublish(
+                exchange: "",
+                routingKey: "demo-queue",
+                basicProperties: null,
+                body: body);
+
+            Response.Write("Message Sent!");
+        }
     }
+    }
+}
+public static class NotificationStore
+{
+    public static string LastNotification { get; set; }
 }
