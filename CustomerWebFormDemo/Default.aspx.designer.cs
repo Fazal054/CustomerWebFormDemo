@@ -33,15 +33,6 @@ namespace CustomerWebFormDemo
         protected global::System.Web.UI.WebControls.Button btnAddStudent;
 
         /// <summary>
-        /// WelcomeBox1 control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::CustomerWebFormDemo.WelcomeBox WelcomeBox1;
-
-        /// <summary>
         /// btnSend control.
         /// </summary>
         /// <remarks>
@@ -94,24 +85,6 @@ namespace CustomerWebFormDemo
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtEmail;
-
-        /// <summary>
-        /// fileUploadCV control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.FileUpload fileUploadCV;
-
-        /// <summary>
-        /// lblFileError control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblFileError;
 
         /// <summary>
         /// ddlCourse control.
