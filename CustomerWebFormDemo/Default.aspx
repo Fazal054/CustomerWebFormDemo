@@ -1,5 +1,5 @@
 ﻿<%@ Page Title="Home Page" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Default.aspx.cs" Inherits="CustomerWebFormDemo._Default" %>
-
+<%@ Register Src="~/WelcomeBox.ascx" TagPrefix="uc" TagName="WelcomeBox" %>
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
 
 <main>
@@ -11,6 +11,9 @@
                 <asp:Button ID="btnAddStudent" runat="server" Text="Add Student"
                     CssClass="btn btn-primary"
                     OnClientClick="openModal(); return false;" />
+
+                <uc:WelcomeBox ID="WelcomeBox1" runat="server"></uc:WelcomeBox>
+
                 <asp:Button ID="btnSend" runat="server" Text="Send Notification" OnClick="btnSend_Click" />
                 <asp:Label ID="lblNotification" runat="server" ForeColor="Green"></asp:Label>
                 <asp:GridView ID="GridView1" runat="server"
@@ -21,6 +24,7 @@
     AutoGenerateColumns="false"
     OnRowEditing="GridView1_RowEditing"
     OnRowCancelingEdit="GridView1_RowCancelingEdit"
+    OnRowCommand="GridView1_RowCommand"
     >
     
     <Columns>
@@ -60,6 +64,16 @@
             <EditItemTemplate>
                 <asp:TextBox ID="txtCourse" runat="server" Text='<%# Bind("Course") %>'></asp:TextBox>
             </EditItemTemplate>
+        </asp:TemplateField>
+
+        <asp:TemplateField HeaderText="CV">
+            <ItemTemplate>
+                <asp:Button ID="btnViewCV" runat="server"
+                    Text="View CV"
+                    CommandName="ViewCV"
+                    CommandArgument='<%# Eval("Id") %>'
+                    onClientClick="this.form.target='_blank';" />
+            </ItemTemplate>
         </asp:TemplateField>
 
         <asp:CommandField ShowEditButton="true" ShowDeleteButton="true" />
@@ -131,6 +145,8 @@
                 <asp:TextBox ID="txtName" runat="server" placeholder="Enter Name"></asp:TextBox><br />
                 <asp:TextBox ID="txtAge" runat="server" placeholder="Enter Age"></asp:TextBox><br />
                 <asp:TextBox ID="txtEmail" runat="server" placeholder="Enter Email"></asp:TextBox><br />
+                <asp:FileUpload ID="fileUploadCV" runat="server" />
+                <asp:Label ID="lblFileError" runat="server" ForeColor="Red"></asp:Label><br />
 
                 <asp:DropDownList ID="ddlCourse" runat="server"></asp:DropDownList><br /><br />
 

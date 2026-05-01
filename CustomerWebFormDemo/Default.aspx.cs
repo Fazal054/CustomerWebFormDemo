@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Web.Services;
+using System.Web.UI;
 using System.Web.UI.WebControls;
 
 namespace CustomerWebFormDemo
@@ -74,6 +75,7 @@ namespace CustomerWebFormDemo
             {
                 LoadStudents();
                 BindCourses();
+                WelcomeBox1.UserName = "John";
             }
             if (!string.IsNullOrEmpty(NotificationStore.LastNotification))
             {
@@ -88,10 +90,31 @@ namespace CustomerWebFormDemo
             string email = txtEmail.Text;
             string course = ddlCourse.SelectedValue;
 
+            byte[] cvData = null;
+            string fileName = null;
+
+            if(fileUploadCV.HasFile)
+            {
+                string extension = System.IO.Path.GetExtension(fileUploadCV.FileName).ToLower();
+
+                if(extension != ".pdf")
+                {
+                    lblFileError.Text = "Only PDF files are allowed.";
+
+                    ScriptManager.RegisterStartupScript(this, this.GetType(),
+    "Popup",
+    "setTimeout(function(){ var myModal = new bootstrap.Modal(document.getElementById('studentModal')); myModal.show(); }, 200);",
+    true);
+                    return;
+                }
+                fileName = fileUploadCV.FileName;
+                cvData = fileUploadCV.FileBytes;
+            }
+
             string connStr = @"Server=.;Database=StudentDB;Trusted_Connection=True;";
             using(SqlConnection con = new SqlConnection(connStr))
             {
-                string query = "Insert into Students (Name, Age, Email, Course) Values (@Name, @Age, @Email, @Course)";
+                string query = "Insert into Students (Name, Age, Email, Course, CV, CVFileName) Values (@Name, @Age, @Email, @Course, @CV, @FileName)";
 
                 using(SqlCommand cmd = new SqlCommand(query, con))
                 {
@@ -99,13 +122,15 @@ namespace CustomerWebFormDemo
                     cmd.Parameters.AddWithValue("@Age", age);
                     cmd.Parameters.AddWithValue("@Email", email);
                     cmd.Parameters.AddWithValue("@Course", course);
+                    cmd.Parameters.AddWithValue("@CV", (object)cvData ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@FileName", (object)fileName ?? DBNull.Value);
 
                     con.Open();
                     cmd.ExecuteNonQuery();
                     con.Close();
                 }
             }
-
+            lblFileError.Text = "";
             LoadStudents();
             txtName.Text = "";
             txtAge.Text = "";
@@ -124,6 +149,15 @@ namespace CustomerWebFormDemo
         {
             GridView1.EditIndex = e.NewEditIndex;
             LoadStudents();
+        }
+
+        protected void GridView1_RowCommand(object sender, GridViewCommandEventArgs e)
+        {
+            if (e.CommandName == "ViewCV")
+            {
+                string id = e.CommandArgument.ToString();
+                Response.Redirect("ViewCV.aspx?id=" + id);
+            }
         }
 
         protected void GridView1_RowCancelingEdit(object sender, GridViewCancelEditEventArgs e)
