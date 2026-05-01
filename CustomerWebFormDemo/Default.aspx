@@ -8,7 +8,7 @@
             <section>
                
                 <asp:Label ID="lblMessage" runat="server"></asp:Label>
-                <asp:Button ID="btnAddStudent" runat="server" Text="Add Student"
+                <asp:Button ID="btnAddStudent" runat="server" Text="ADD STUDENT"
                     CssClass="btn btn-primary"
                     OnClientClick="openModal(); return false;" />
 
